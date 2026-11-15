@@ -199,7 +199,13 @@ function UnitDrawer({ unitId, property, onClose }: { unitId: string; property: P
           </div>
           {u.activeLease && (
             <div className="rounded-lg border border-line bg-page p-3 text-sm">
-              Let to <Link to={`/tenants/${u.activeLease.tenantId}`} className="font-medium text-teal">{u.activeLease.fullName}</Link> ({u.activeLease.tenantNo}) on lease {u.activeLease.leaseNo}, {date(u.activeLease.startDate)} to {date(u.activeLease.endDate)}.
+              Let to <Link to={`/tenants/${u.activeLease.tenantId}`} className="font-medium text-teal">{u.activeLease.fullName}</Link> ({u.activeLease.tenantNo}) on lease <Link to={`/leases/${u.activeLease.id}`} className="font-mono text-teal">{u.activeLease.leaseNo}</Link>, {date(u.activeLease.startDate)} to {date(u.activeLease.endDate)}.
+            </div>
+          )}
+          {!u.activeLease && (u.status === "vacant" || u.status === "reserved") && write && (
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-teal/40 bg-teal/5 p-3 text-sm">
+              <span className="text-slate-600">This unit is {u.status}.</span>
+              <Link to={`/leases/new?unitId=${u.id}`}><Button>Let this unit</Button></Link>
             </div>
           )}
 

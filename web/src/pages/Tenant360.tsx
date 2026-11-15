@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertOctagon, Download, Pencil, RefreshCw, Trash2, Upload } from "lucide-react";
+import { AlertOctagon, Download, Pencil, Plus, RefreshCw, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { del, get, post, upload } from "@/lib/api";
@@ -76,12 +76,14 @@ export function Tenant360Page() {
         <Card title="Current lease">
           {active ? (
             <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">Lease</span><span className="font-mono">{active.leaseNo}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Lease</span><Link to={`/leases/${active.id}`} className="font-mono text-teal hover:underline">{active.leaseNo}</Link></div>
               <div className="flex justify-between"><span className="text-slate-500">Term</span><span>{date(active.startDate)} to {date(active.endDate)}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Rent</span><span className="font-medium">{money(active.monthlyRent, active.currencyCode)}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Deposit</span><span>{money(active.depositAmount, active.currencyCode)}</span></div>
             </div>
-          ) : <p className="text-sm text-slate-400">The lease wizard arrives in stage 2.</p>}
+          ) : can("property_manager") ? (
+            <div className="space-y-2 text-sm text-slate-500"><p>No active lease.</p><Link to={`/leases/new?tenantId=${t.id}`}><Button><Plus className="h-4 w-4" />New lease</Button></Link></div>
+          ) : <p className="text-sm text-slate-400">No active lease.</p>}
         </Card>
       </div>
 
@@ -111,7 +113,7 @@ function LeasesTab({ leases }: { leases: Lease[] }) {
     <Table head={["Lease", "Unit", "Status", "Start", "End", "Billing", <NumHead key="r">Rent</NumHead>, <NumHead key="d">Deposit</NumHead>]}>
       {leases.map((l) => (
         <tr key={l.id}>
-          <td className="font-mono text-xs">{l.leaseNo}</td>
+          <td><Link to={`/leases/${l.id}`} className="font-mono text-xs text-teal hover:underline">{l.leaseNo}</Link></td>
           <td>{l.unit}<span className="block text-xs text-slate-400">{l.property}</span></td>
           <td><StatusPill status={l.status} /></td>
           <td>{date(l.startDate)}</td><td>{date(l.endDate)}</td>

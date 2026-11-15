@@ -14,13 +14,13 @@ C/AL) as the ledger: every invoice, credit note, receipt and deposit posts to BC
 
 ## Build plan
 
-The product spec has six stages. This repository is at **stage 1**.
+The product spec has six stages. This repository is at **stage 2**.
 
 | Stage | Scope | Status |
 |---|---|---|
 | 1 | App shell, auth and roles (2FA for staff, phone OTP for tenants), setup pages, properties and units (with Excel/CSV import), tenants and the tenant 360 page, full SQL Server schema, BC sync queue | **Done** |
-| 2 | Lease wizard, rent schedules and escalation, notices | Next |
-| 3 | Billing runs, water readings, penalties, credit notes (PostInvoice, PostCreditMemo) | |
+| 2 | Lease wizard, rent schedules and escalation, notices | **Done** |
+| 3 | Billing runs, water readings, penalties, credit notes (PostInvoice, PostCreditMemo) | Next |
 | 4 | Payments, M-PESA Daraja C2B and STK push, bank statements, cheques, deposits | |
 | 5 | Maintenance, transfers, move-outs, advice slips | |
 | 6 | Dashboard, tenant and landlord portals, reports, BC sync log extras | |
@@ -54,6 +54,29 @@ The product spec has six stages. This repository is at **stage 1**.
   Mombasa Road Business Park (42 units, USD), Ngong View Court Karen, Westlands Corner Plaza (mixed)
   and Thika Greens Estate; about 220 tenants with Kenyan names, active leases, charges, meters and
   deposits. Bills and payments are seeded once stages 3 and 4 exist.
+
+## What stage 2 includes
+
+- **Lease wizard** (Leases → New lease, or "Let this unit" on a vacant unit, or "New lease" on a tenant):
+  tenant → vacant unit → term, currency, billing day and frequency → charges copied from the unit
+  defaults → deposits, grace days, penalty rule, VAT, WHT → escalation rule → review. Save as a draft
+  or activate. Blacklisted tenants need an explicit override.
+- **Activation** sets the unit occupied, creates the rent and water deposit records (held, awaiting
+  receipt) and queues UpsertTenant again so BC gets the new PROPERTY and UNIT dimensions. A filtered
+  unique index stops two active leases on one unit.
+- **Rent schedule (rule 2)**: rows for the whole term. Fixed % compounding gives 4,200.00 → 4,410.00 →
+  4,630.50 → 4,862.03; also simple %, fixed amount, stepped and market review (alert 60 days before).
+  A daily Hangfire job (00:30 Nairobi) marks rows "notice due" `notice_days` before they start and
+  applies approved rows on their date (the RENT charge follows). The accountant approves with
+  **Approve & send notice**, which sends the `escalation_notice` SMS and records it in `ops.notices`.
+  Unapproved escalations never take effect; the accountant can also change or decline a future row.
+- **Lease detail page**: lease card (Edit, Statement, Transfer unit for stage 5, Renew, End lease), the
+  rent schedule with the yellow notice banner, recurring charges with the BC G/L account from the
+  charge code, deposits and notices. Active leases keep tenant, unit, dates, currency and rent fixed.
+- **Renewal** extends the end date and keeps the schedule, adding rows for the extra term.
+  **Ending** a lease before its end date marks it terminated (on or after: ended), frees the unit and
+  drops later schedule rows. Deposits stay held for the stage 5 move-out.
+- **Leases list** with filters for escalations due, expiring in 30/60/90 days, status, property and currency.
 
 ## Run it locally
 

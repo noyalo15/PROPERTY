@@ -8,7 +8,7 @@ import { Card, ErrorText, Kpi, OccupancyBar, Spinner, Table, Num, NumHead } from
 
 interface Dash {
   units: number; occupied: number; vacant: number; occupancyPercent: number; tenants: number; activeLeases: number;
-  bcFailed: number; bcPending: number; expiringIn90: number;
+  bcFailed: number; bcPending: number; expiringIn90: number; escalationsDue: number;
   properties: { id: string; name: string; code: string; units: number; occupied: number; occupancyPercent: number }[];
 }
 
@@ -20,7 +20,8 @@ export function DashboardPage() {
 
   const actions = [
     data.bcFailed > 0 && { text: `${data.bcFailed} BC posting(s) failed`, to: "/bc-sync" },
-    data.expiringIn90 > 0 && { text: `${data.expiringIn90} lease(s) end within 90 days`, to: "/tenants" },
+    data.escalationsDue > 0 && { text: `${data.escalationsDue} rent escalation notice(s) due for approval`, to: "/leases?escalations=due" },
+    data.expiringIn90 > 0 && { text: `${data.expiringIn90} lease(s) end within 90 days`, to: "/leases?expiring=90" },
     data.properties.some((p) => p.occupancyPercent < 85) && { text: "Some properties are under 85% occupancy", to: "/properties" },
   ].filter(Boolean) as { text: string; to: string }[];
 
@@ -54,7 +55,7 @@ export function DashboardPage() {
               ))}
             </ul>
           )}
-          <p className="mt-4 text-xs text-slate-400">Unpaid bills, escalations, water readings and collection charts join this dashboard as stages 2 to 6 land.</p>
+          <p className="mt-4 text-xs text-slate-400">Unpaid bills, water readings and collection charts join this dashboard as stages 3 to 6 land.</p>
         </Card>
       </div>
     </div>

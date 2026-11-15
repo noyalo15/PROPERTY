@@ -3022,6 +3022,7 @@ namespace NavEstate.Api.Data.Migrations
                         .HasName("pk_rent_escalation_rules");
 
                     b.HasIndex("LeaseId")
+                        .IsUnique()
                         .HasDatabaseName("ix_rent_escalation_rules_lease_id");
 
                     b.ToTable("rent_escalation_rules", "tenancy", t =>
@@ -3103,8 +3104,13 @@ namespace NavEstate.Api.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_rent_schedule");
 
-                    b.HasIndex("LeaseId")
-                        .HasDatabaseName("ix_rent_schedule_lease_id");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_rent_schedule_status")
+                        .HasFilter("[status] IN ('scheduled', 'pending_approval', 'approved')");
+
+                    b.HasIndex("LeaseId", "EffectiveFrom")
+                        .IsUnique()
+                        .HasDatabaseName("ix_rent_schedule_lease_id_effective_from");
 
                     b.ToTable("rent_schedule", "tenancy", t =>
                         {

@@ -65,16 +65,18 @@ builder.Services.AddAuthorization(o =>
     o.AddPolicy(Policies.Setup, p => p.RequireRole(Roles.SuperAdmin, Roles.Accountant));
     o.AddPolicy(Policies.Operations, p => p.RequireRole(Roles.SuperAdmin, Roles.PropertyManager));
     o.AddPolicy(Policies.UserAdmin, p => p.RequireRole(Roles.SuperAdmin));
+    o.AddPolicy(Policies.Approvals, p => p.RequireRole(Roles.SuperAdmin, Roles.Accountant));
     o.AddPolicy(Policies.BcSync, p => p.RequireRole(Roles.SuperAdmin, Roles.Accountant));
     o.AddPolicy(Policies.TenantPortal, p => p.RequireRole(Roles.Tenant));
     o.AddPolicy(Policies.LandlordPortal, p => p.RequireRole(Roles.Landlord));
 });
 
+var signInsPerMinute = cfg.GetValue("RateLimits:SignInsPerMinute", 20);
 builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = 429;
     o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "x",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = signInsPerMinute, Window = TimeSpan.FromMinutes(1) }));
     o.AddPolicy("otp", ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "x",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(5) }));
 });
@@ -88,6 +90,7 @@ builder.Services.AddScoped<BcSyncWorker>();
 builder.Services.AddScoped<BcHealthJobs>();
 
 builder.Services.AddScoped<NumberSeriesService>();
+builder.Services.AddScoped<NavEstate.Api.Features.RentScheduleService>();
 builder.Services.AddScoped<Seeder>();
 builder.Services.AddSingleton<IFileStore, LocalFileStore>();
 // With no API key the sender only logs the message (development shows tenant OTP codes in the log).
@@ -150,6 +153,8 @@ if (jobs.RunServer)
     rec.AddOrUpdate<BcHealthJobs>("bc-ping", j => j.PingAsync(CancellationToken.None), "*/5 * * * *", nairobi);
     app.Services.GetRequiredService<IBackgroundJobClient>().Enqueue<BcHealthJobs>(j => j.PingAsync(CancellationToken.None));
     rec.AddOrUpdate<BcHealthJobs>("bc-usd-rate", j => j.RefreshUsdRateAsync(CancellationToken.None), "0 6 * * *", nairobi);
+    // Rule 2: flag escalation notices due, apply approved escalations on their date.
+    rec.AddOrUpdate<NavEstate.Api.Features.RentScheduleService>("rent-schedule", s => s.RunDailyAsync(CancellationToken.None), "30 0 * * *", nairobi);
 }
 
 app.MapControllers();

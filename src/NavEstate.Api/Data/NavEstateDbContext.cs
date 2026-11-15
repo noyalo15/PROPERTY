@@ -162,12 +162,15 @@ public class NavEstateDbContext(DbContextOptions<NavEstateDbContext> options) : 
         T<RentEscalationRule>(mb, "rent_escalation_rules", "tenancy", e =>
         {
             e.HasOne<Lease>().WithMany().HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => x.LeaseId).IsUnique();
             e.Property(x => x.Value).HasPrecision(18, 4);
             Check(e, "type", V.EscalationType);
         });
         T<RentSchedule>(mb, "rent_schedule", "tenancy", e =>
         {
             e.HasOne<Lease>().WithMany().HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => new { x.LeaseId, x.EffectiveFrom }).IsUnique();
+            e.HasIndex(x => x.Status).HasFilter("[status] IN ('scheduled', 'pending_approval', 'approved')");
             Check(e, "status", V.ScheduleStatus);
         });
         T<PenaltyRule>(mb, "penalty_rules", "tenancy", e =>

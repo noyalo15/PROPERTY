@@ -26,6 +26,8 @@ public static class Policies
     /// <summary>Create/edit properties, units, tenants: super_admin and property_manager.</summary>
     public const string Operations = "operations";
     public const string UserAdmin = "user_admin";
+    /// <summary>Approve escalations (and later credit notes, waivers, deposit refunds): super_admin and accountant.</summary>
+    public const string Approvals = "approvals";
     /// <summary>BC Sync Log: super_admin and accountant.</summary>
     public const string BcSync = "bc_sync";
     public const string TenantPortal = "tenant_portal";

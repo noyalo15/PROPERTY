@@ -30,6 +30,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:NavEstate", ConnectionString);
         builder.UseSetting("Jobs:RunServer", "false");
+        builder.UseSetting("RateLimits:SignInsPerMinute", "1000"); // every test signs in
         builder.UseSetting("Seed:Demo", "true");
         builder.UseSetting("Seed:DemoPassword", DemoPassword);
         builder.UseSetting("Auth:RequireStaffTwoFactor", RequireStaffTwoFactor ? "true" : "false");
