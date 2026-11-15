@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+src/NavEstate.Api/App_Data/
+src/NavEstate.Api/appsettings.Production.json
+src/NavEstate.Api/appsettings.Local.json
+
+# Front end (wwwroot is a build output: npm run build in web/)
+web/node_modules/
+web/dist/
+src/NavEstate.Api/wwwroot/
+
+# Editors / OS
+.idea/
+.DS_Store
+Thumbs.db
