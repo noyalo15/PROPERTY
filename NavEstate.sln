@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FF9263A7-3929-4F8A-9797-B07D37A4CCEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavEstate.Api", "src\NavEstate.Api\NavEstate.Api.csproj", "{156A8803-5282-4CCB-977F-E5EE59380E01}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5608DB73-4678-433D-BFB1-DC9ADDEF5194}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavEstate.Tests", "tests\NavEstate.Tests\NavEstate.Tests.csproj", "{C34A4238-40E9-4033-AB88-BACB67EC8B98}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{156A8803-5282-4CCB-977F-E5EE59380E01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{156A8803-5282-4CCB-977F-E5EE59380E01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{156A8803-5282-4CCB-977F-E5EE59380E01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{156A8803-5282-4CCB-977F-E5EE59380E01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C34A4238-40E9-4033-AB88-BACB67EC8B98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C34A4238-40E9-4033-AB88-BACB67EC8B98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C34A4238-40E9-4033-AB88-BACB67EC8B98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C34A4238-40E9-4033-AB88-BACB67EC8B98}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{156A8803-5282-4CCB-977F-E5EE59380E01} = {FF9263A7-3929-4F8A-9797-B07D37A4CCEA}
+		{C34A4238-40E9-4033-AB88-BACB67EC8B98} = {5608DB73-4678-433D-BFB1-DC9ADDEF5194}
+	EndGlobalSection
+EndGlobal
