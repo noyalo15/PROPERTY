@@ -203,7 +203,8 @@ public class SearchController(NavEstateDbContext db) : ControllerBase
             activeLeases = await VisibleActiveLeases().CountAsync(ct),
             bcFailed = await db.BcSyncQueue.CountAsync(x => x.Status == "failed" && x.NextAttemptAt == null, ct),
             bcPending = await db.BcSyncQueue.CountAsync(x => x.Status == "pending" || x.Status == "processing" || (x.Status == "failed" && x.NextAttemptAt != null), ct),
-            expiringIn90 = await VisibleActiveLeases().CountAsync(l => l.EndDate != null && l.EndDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(90)), ct)
+            expiringIn90 = await VisibleActiveLeases().CountAsync(l => l.EndDate != null && l.EndDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(90)), ct),
+            escalationsDue = await VisibleActiveLeases().CountAsync(l => db.RentSchedules.Any(r => r.LeaseId == l.Id && r.Status == "pending_approval"), ct)
         });
     }
 }

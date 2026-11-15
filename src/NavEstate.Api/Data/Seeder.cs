@@ -5,6 +5,7 @@ using NavEstate.Api.Auth;
 using NavEstate.Api.Bc;
 using NavEstate.Api.Common;
 using NavEstate.Api.Domain;
+using NavEstate.Api.Features;
 
 namespace NavEstate.Api.Data;
 
@@ -22,7 +23,7 @@ public class SeedOptions
 
 /// <summary>Reference data (always) and demo data (Seed:Demo = true). Safe to run on every start.</summary>
 public class Seeder(NavEstateDbContext db, UserManager<AppUser> users, RoleManager<IdentityRole> roles,
-    NumberSeriesService numbers, BcSyncQueue bcQueue, TimeProvider clock, ILogger<Seeder> log)
+    NumberSeriesService numbers, BcSyncQueue bcQueue, RentScheduleService schedules, TimeProvider clock, ILogger<Seeder> log)
 {
     public async Task RunAsync(SeedOptions o, CancellationToken ct = default)
     {
@@ -173,6 +174,7 @@ public class Seeder(NavEstateDbContext db, UserManager<AppUser> users, RoleManag
         // Thika Greens Estate: 36 maisonettes.
         var thikaUnits = Enumerable.Range(1, 36).Select(i => new UnitSpec($"TG-{i:D3}", i <= 18 ? "Phase 1" : "Phase 2", "maisonette", "G", i <= 18 ? 28000 : 30000, 1300)).ToList();
 
+        var rentCodes = new HashSet<string>(["RENT", "RENTCOM"]);
         var tenantPhones = new HashSet<string>();
         var leaseCount = 0;
         Tenant? firstTenant = null;
@@ -244,6 +246,27 @@ public class Seeder(NavEstateDbContext db, UserManager<AppUser> users, RoleManag
                 foreach (var c in charges) lease.Charges.Add(new LeaseCharge { ChargeCode = c.Code, Description = c.Code switch { "SERVICE" => "Service charge", "GARBAGE" => "Garbage collection", _ => "Security" }, Amount = c.Amount, CurrencyCode = cur });
                 db.Leases.Add(lease);
                 u.Status = "occupied";
+
+                // Most leases escalate yearly (rule 2). Past escalations are in effect; the next ones wait for notice and approval.
+                EscalationInput? rule = rnd.NextDouble() switch
+                {
+                    < 0.55 => new("fixed_percent", commercial ? 7.5m : 5m, 12, true, commercial ? 90 : 60),
+                    < 0.70 => new("fixed_percent", 5m, 12, false, 60),
+                    < 0.80 => new("fixed_amount", cur == "USD" ? 100 : 1000, 12, true, 60),
+                    _ => null
+                };
+                if (rule is not null)
+                    db.RentEscalationRules.Add(new RentEscalationRule { LeaseId = lease.Id, Type = rule.Type, Value = rule.Value, EveryMonths = rule.EveryMonths, Compounding = rule.Compounding, NoticeDays = rule.NoticeDays });
+                var rows = RentScheduleGenerator.Generate(s.Rent, start, end, rule).Select(r => new RentSchedule
+                {
+                    LeaseId = lease.Id, EffectiveFrom = r.From, EffectiveTo = r.To, MonthlyRent = r.MonthlyRent, ChangeLabel = r.Label, Status = "scheduled"
+                }).ToList();
+                db.RentSchedules.AddRange(rows);
+                foreach (var r in rows.Where((r, i) => i == 0 || r.EffectiveFrom <= today))
+                {
+                    if (r != rows[0]) { r.ApprovedBy = RentScheduleService.SystemUser; r.NoticeSentAt = new DateTimeOffset(r.EffectiveFrom.AddDays(-rule!.NoticeDays).ToDateTime(TimeOnly.MinValue), Nairobi.Offset); }
+                    RentScheduleService.MakeCurrent(lease, rows, r, rentCodes);
+                }
                 leaseCount++;
                 db.Deposits.Add(new Deposit { TenantId = t.Id, LeaseId = lease.Id, DepositType = "rent", CurrencyCode = cur, AmountHeld = lease.DepositAmount, Status = "held" });
                 if (lease.WaterDepositAmount > 0)
@@ -257,6 +280,9 @@ public class Seeder(NavEstateDbContext db, UserManager<AppUser> users, RoleManag
         await Build(westlands, westUnits, 0.80);
         await Build(thika, thikaUnits, 0.83);
         await db.SaveChangesAsync(ct);
+
+        // Flag the escalation notices that are already due so the demo shows the approval flow.
+        await schedules.AdvanceAsync(today, null, ct);
 
         // Queue every demo tenant for BC (the mock client "posts" them on the first worker run).
         foreach (var t in db.Tenants.Local.ToList()) await bcQueue.EnqueueUpsertTenantAsync(t, ct);
