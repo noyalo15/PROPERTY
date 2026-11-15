@@ -93,10 +93,11 @@ public class LeasesController(NavEstateDbContext db, NumberSeriesService numbers
 
     /// <summary>Wizard step 2: vacant (or reserved) units the user can see, with their default charges.</summary>
     [HttpGet("vacant-units")]
-    public async Task<IActionResult> VacantUnits([FromQuery] string? q, [FromQuery] Guid? propertyId, CancellationToken ct)
+    public async Task<IActionResult> VacantUnits([FromQuery] string? q, [FromQuery] Guid? propertyId, [FromQuery] Guid? unitId, CancellationToken ct)
     {
         var query = db.Units.AsNoTracking().Where(u => u.Status == "vacant" || u.Status == "reserved")
             .Where(u => !db.Leases.Any(l => l.UnitId == u.Id && l.Status == "active"));
+        if (unitId is not null) query = query.Where(u => u.Id == unitId);
         if (propertyId is not null) query = query.Where(u => u.PropertyId == propertyId);
         if (!string.IsNullOrWhiteSpace(q)) query = query.Where(u => u.Code.Contains(q.Trim()) || u.Property!.Name.Contains(q.Trim()));
         var rows = await query.OrderBy(u => u.Property!.Name).ThenBy(u => u.Code).Take(100).Select(u => new

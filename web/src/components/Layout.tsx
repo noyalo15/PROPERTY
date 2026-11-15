@@ -15,7 +15,7 @@ const groups: { title: string; items: Item[] }[] = [
     { to: "/", label: "Dashboard", icon: Gauge },
     { to: "/properties", label: "Properties & Units", icon: Building2 },
     { to: "/tenants", label: "Tenants", icon: Users },
-    { to: "/leases", label: "Leases & Rent Schedules", icon: CalendarClock, stage: 2 },
+    { to: "/leases", label: "Leases & Rent Schedules", icon: CalendarClock },
   ] },
   { title: "Billing", items: [
     { to: "/billing-runs", label: "Billing Runs", icon: FileText, stage: 3 },

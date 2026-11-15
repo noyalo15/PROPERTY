@@ -264,7 +264,6 @@ public class Seeder(NavEstateDbContext db, UserManager<AppUser> users, RoleManag
                 db.RentSchedules.AddRange(rows);
                 foreach (var r in rows.Where((r, i) => i == 0 || r.EffectiveFrom <= today))
                 {
-                    if (r != rows[0]) { r.ApprovedBy = RentScheduleService.SystemUser; r.NoticeSentAt = new DateTimeOffset(r.EffectiveFrom.AddDays(-rule!.NoticeDays).ToDateTime(TimeOnly.MinValue), Nairobi.Offset); }
                     RentScheduleService.MakeCurrent(lease, rows, r, rentCodes);
                 }
                 leaseCount++;

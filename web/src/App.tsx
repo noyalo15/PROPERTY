@@ -12,6 +12,9 @@ import { TenantsPage } from "@/pages/Tenants";
 import { Tenant360Page } from "@/pages/Tenant360";
 import { SetupPage } from "@/pages/Setup";
 import { BcSyncPage } from "@/pages/BcSync";
+import { LeasesPage } from "@/pages/Leases";
+import { LeaseWizardPage } from "@/pages/LeaseWizard";
+import { LeaseDetailPage } from "@/pages/LeaseDetail";
 
 function RequireStaff({ children, roles }: { children: ReactNode; roles?: Role[] }) {
   const { me, loading, can } = useAuth();
@@ -69,7 +72,9 @@ export function App() {
       <Route path="/tenants/:id" element={<RequireStaff><Tenant360Page /></RequireStaff>} />
       <Route path="/setup" element={<RequireStaff><SetupPage /></RequireStaff>} />
       <Route path="/bc-sync" element={<RequireStaff roles={["accountant"]}><BcSyncPage /></RequireStaff>} />
-      <Route path="/leases" element={<RequireStaff><ComingSoon title="Leases & Rent Schedules" stage={2} /></RequireStaff>} />
+      <Route path="/leases" element={<RequireStaff><LeasesPage /></RequireStaff>} />
+      <Route path="/leases/new" element={<RequireStaff roles={["property_manager"]}><LeaseWizardPage /></RequireStaff>} />
+      <Route path="/leases/:id" element={<RequireStaff><LeaseDetailPage /></RequireStaff>} />
       <Route path="/billing-runs" element={<RequireStaff><ComingSoon title="Billing Runs" stage={3} /></RequireStaff>} />
       <Route path="/water" element={<RequireStaff><ComingSoon title="Water Readings" stage={3} /></RequireStaff>} />
       <Route path="/penalties" element={<RequireStaff><ComingSoon title="Penalties" stage={3} /></RequireStaff>} />
